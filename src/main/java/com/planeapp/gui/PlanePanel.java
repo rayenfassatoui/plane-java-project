@@ -1,6 +1,7 @@
 package com.planeapp.gui;
 
-import com.planeapp.data.DataManager;
+import com.planeapp.dao.PassengerDAO;
+import com.planeapp.dao.PlaneDAO;
 import com.planeapp.model.Passenger;
 import com.planeapp.model.Plane;
 
@@ -14,15 +15,16 @@ import java.util.Optional;
 
 public class PlanePanel extends JPanel {
 
-    private final DataManager dataManager;
-    private final PlaneAppGUI mainApp; // Reference to main GUI for coordinated refresh
+    private final PlaneDAO planeDAO;
+    private final PassengerDAO passengerDAO;
+    private final PlaneAppGUI mainApp;
 
     private JTable planeTable;
     private DefaultTableModel planeTableModel;
     private JTextField planeModelField;
     private JTextField planeRegField;
     private JTextField planeSearchField;
-    private JButton deletePlaneButton; // Make accessible for enabling/disabling
+    private JButton deletePlaneButton;
 
     // Passenger components
     private JTable passengerTable;
@@ -32,14 +34,15 @@ public class PlanePanel extends JPanel {
     private JTextField passengerSeatField;
     private JButton addPassengerButton;
     private JButton deletePassengerButton;
-    private JPanel passengerControlPanel; // Panel holding passenger controls
+    private JPanel passengerControlPanel;
 
-    public PlanePanel(DataManager dataManager, PlaneAppGUI mainApp) {
-        super(new BorderLayout(10, 10)); // Use BorderLayout for the panel itself
-        this.dataManager = dataManager;
+    public PlanePanel(PlaneDAO planeDAO, PassengerDAO passengerDAO, PlaneAppGUI mainApp) {
+        super(new BorderLayout(10, 10));
+        this.planeDAO = planeDAO;
+        this.passengerDAO = passengerDAO;
         this.mainApp = mainApp;
         initComponents();
-        enablePassengerControls(false); // Initially disable passenger controls
+        enablePassengerControls(false);
     }
 
     private void initComponents() {
@@ -181,7 +184,7 @@ public class PlanePanel extends JPanel {
             selectedPlaneId = (Integer) planeTableModel.getValueAt(selectedRow, 0);
         }
 
-        refreshTable(dataManager.getAllPlanes());
+        refreshTable(planeDAO.getAllPlanes());
         if(planeSearchField != null) planeSearchField.setText("");
 
          // Re-select row if it still exists
@@ -206,7 +209,7 @@ public class PlanePanel extends JPanel {
     }
 
     private void refreshPassengerTable(int planeId) {
-        List<Passenger> passengers = dataManager.getPassengersForPlane(planeId);
+        List<Passenger> passengers = passengerDAO.getPassengersForPlane(planeId);
         passengerTableModel.setRowCount(0); // Clear existing passenger data
         for (Passenger passenger : passengers) {
             Object[] rowData = { passenger.getId(), passenger.getName(), passenger.getPassportNumber(), passenger.getSeatNumber() };
@@ -238,7 +241,7 @@ public class PlanePanel extends JPanel {
             return;
         }
         Plane dummyPlane = new Plane(0, model, reg);
-        Optional<Plane> addedPlaneOpt = dataManager.addPlane(dummyPlane);
+        Optional<Plane> addedPlaneOpt = planeDAO.addPlane(dummyPlane);
         if (addedPlaneOpt.isPresent()) {
             mainApp.refreshAllPanels(); // Refresh all panels via main app
             planeModelField.setText("");
@@ -255,7 +258,7 @@ public class PlanePanel extends JPanel {
              JOptionPane.showMessageDialog(this, "Please enter search term (Model or Registration).", "Search Error", JOptionPane.WARNING_MESSAGE);
              return;
         }
-        List<Plane> results = dataManager.searchPlanes(query);
+        List<Plane> results = planeDAO.searchPlanes(query);
         refreshTable(results); // Only refresh this panel's table
          if (results.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No planes found matching '" + query + "'.", "Search Result", JOptionPane.INFORMATION_MESSAGE);
@@ -268,7 +271,7 @@ public class PlanePanel extends JPanel {
         int planeId = (int) planeTableModel.getValueAt(selectedRow, 0);
         int confirmation = JOptionPane.showConfirmDialog(this, "Delete plane ID: " + planeId + "? (Passengers will also be deleted)", "Confirm Deletion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (confirmation == JOptionPane.YES_OPTION) {
-            boolean deleted = dataManager.deletePlane(planeId);
+            boolean deleted = planeDAO.deletePlane(planeId);
             if (deleted) {
                 mainApp.refreshAllPanels(); // Refresh all panels via main app
                 JOptionPane.showMessageDialog(this, "Plane deleted.", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -298,7 +301,7 @@ public class PlanePanel extends JPanel {
 
         // ID is assigned by DB
         Passenger dummyPassenger = new Passenger(0, name, passport, seat);
-        Optional<Passenger> addedPassengerOpt = dataManager.addPassenger(dummyPassenger, planeId);
+        Optional<Passenger> addedPassengerOpt = passengerDAO.addPassenger(dummyPassenger, planeId);
 
         if (addedPassengerOpt.isPresent()) {
             refreshPassengerTable(planeId); // Refresh only passenger table
@@ -330,7 +333,7 @@ public class PlanePanel extends JPanel {
                 JOptionPane.WARNING_MESSAGE);
 
         if (confirmation == JOptionPane.YES_OPTION) {
-            boolean deleted = dataManager.deletePassenger(passengerId);
+            boolean deleted = passengerDAO.deletePassenger(passengerId);
             if (deleted) {
                 refreshPassengerTable(planeId); // Refresh only passenger table
                 JOptionPane.showMessageDialog(this, "Passenger deleted successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);

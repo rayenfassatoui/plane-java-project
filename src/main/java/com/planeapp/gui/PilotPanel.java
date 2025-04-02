@@ -1,6 +1,6 @@
 package com.planeapp.gui;
 
-import com.planeapp.data.DataManager;
+import com.planeapp.dao.PilotDAO;
 import com.planeapp.model.Pilot;
 
 import javax.swing.*;
@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public class PilotPanel extends JPanel {
 
-    private final DataManager dataManager;
+    private final PilotDAO pilotDAO;
     private final PlaneAppGUI mainApp; // Reference to main GUI
 
     private JTable pilotTable;
@@ -20,9 +20,9 @@ public class PilotPanel extends JPanel {
     private JTextField pilotLicenseField;
     private JTextField pilotSearchField;
 
-    public PilotPanel(DataManager dataManager, PlaneAppGUI mainApp) {
+    public PilotPanel(PilotDAO pilotDAO, PlaneAppGUI mainApp) {
         super(new BorderLayout(10, 10));
-        this.dataManager = dataManager;
+        this.pilotDAO = pilotDAO;
         this.mainApp = mainApp;
         initComponents();
     }
@@ -102,7 +102,7 @@ public class PilotPanel extends JPanel {
 
     // --- Refresh Methods ---
     public void refreshTable() {
-        refreshTable(dataManager.getAllPilots());
+        refreshTable(pilotDAO.getAllPilots());
         if (pilotSearchField != null) pilotSearchField.setText("");
     }
 
@@ -120,7 +120,7 @@ public class PilotPanel extends JPanel {
         String license = pilotLicenseField.getText().trim();
         if (name.isEmpty() || license.isEmpty()) { JOptionPane.showMessageDialog(this, "Name and License Number cannot be empty.", "Input Error", JOptionPane.WARNING_MESSAGE); return; }
         Pilot dummyPilot = new Pilot(0, name, license);
-        Optional<Pilot> addedPilotOpt = dataManager.addPilot(dummyPilot);
+        Optional<Pilot> addedPilotOpt = pilotDAO.addPilot(dummyPilot);
         if (addedPilotOpt.isPresent()) {
             mainApp.refreshAllPanels(); // Refresh all panels via main app
             pilotNameField.setText("");
@@ -134,7 +134,7 @@ public class PilotPanel extends JPanel {
     private void searchPilotAction() {
         String query = pilotSearchField.getText().trim();
         if (query.isEmpty()) { JOptionPane.showMessageDialog(this, "Please enter search term (Name or ID).", "Search Error", JOptionPane.WARNING_MESSAGE); return; }
-        List<Pilot> results = dataManager.searchPilots(query);
+        List<Pilot> results = pilotDAO.searchPilots(query);
         refreshTable(results); // Refresh only this panel's table
          if (results.isEmpty()) { JOptionPane.showMessageDialog(this, "No pilots found matching '" + query + "'.", "Search Result", JOptionPane.INFORMATION_MESSAGE); }
     }
@@ -146,7 +146,7 @@ public class PilotPanel extends JPanel {
         String pilotName = (String) pilotTableModel.getValueAt(selectedRow, 1);
         int confirmation = JOptionPane.showConfirmDialog(this, "Delete pilot: " + pilotName + " (ID: " + pilotId + ")?\n(Will unassign from planes)", "Confirm Deletion", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (confirmation == JOptionPane.YES_OPTION) {
-            boolean deleted = dataManager.deletePilot(pilotId);
+            boolean deleted = pilotDAO.deletePilot(pilotId);
             if (deleted) {
                 mainApp.refreshAllPanels(); // Refresh all panels via main app
                 JOptionPane.showMessageDialog(this, "Pilot deleted.", "Success", JOptionPane.INFORMATION_MESSAGE);

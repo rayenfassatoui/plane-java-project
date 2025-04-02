@@ -69,4 +69,44 @@ public class JdbcPassengerDAO implements PassengerDAO {
             rs.getString("seat_number")
         );
     }
+
+    /**
+     * Finds passengers who are on planes assigned to pilots whose name contains the query string.
+     * NOTE: This implementation uses nested IN clauses for demonstration purposes.
+     *       In practice, JOINs are usually more efficient for this type of query.
+     * @param pilotNameQuery The substring to search for in pilot names (case-insensitive).
+     * @return A list of matching passengers.
+     */
+    @Override
+    public List<Passenger> findPassengersOnPlanesOfPilotsWithNameLike(String pilotNameQuery) {
+        List<Passenger> passengers = new ArrayList<>();
+        String sql = "SELECT id, name, passport_number, seat_number " +
+                     "FROM passengers " +
+                     "WHERE plane_id IN ( " +
+                     "  SELECT id " +
+                     "  FROM planes " +
+                     "  WHERE pilot_id IN ( " +
+                     "    SELECT id " +
+                     "    FROM pilots " +
+                     "    WHERE LOWER(name) LIKE ? " +
+                     "  ) " +
+                     ") " +
+                     "ORDER BY name";
+
+        String searchTerm = "%" + pilotNameQuery.toLowerCase() + "%";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, searchTerm);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                passengers.add(mapResultSetToPassenger(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Error findPassengersOnPlanesOfPilotsWithNameLike: " + e.getMessage());
+        }
+        return passengers;
+    }
 } 

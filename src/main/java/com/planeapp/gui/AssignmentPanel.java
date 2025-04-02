@@ -1,6 +1,7 @@
 package com.planeapp.gui;
 
-import com.planeapp.data.DataManager;
+import com.planeapp.dao.PilotDAO;
+import com.planeapp.dao.PlaneDAO;
 import com.planeapp.model.Pilot;
 import com.planeapp.model.Plane;
 
@@ -11,8 +12,9 @@ import java.util.Optional;
 
 public class AssignmentPanel extends JPanel {
 
-    private final DataManager dataManager;
-    private final PlaneAppGUI mainApp; // Reference to main GUI
+    private final PlaneDAO planeDAO;
+    private final PilotDAO pilotDAO;
+    private final PlaneAppGUI mainApp;
 
     private JComboBox<PlaneWrapper> assignPlaneCombo;
     private JComboBox<PilotWrapper> assignPilotCombo;
@@ -20,9 +22,10 @@ public class AssignmentPanel extends JPanel {
     private JButton assignButton;
     private JButton unassignButton;
 
-    public AssignmentPanel(DataManager dataManager, PlaneAppGUI mainApp) {
+    public AssignmentPanel(PlaneDAO planeDAO, PilotDAO pilotDAO, PlaneAppGUI mainApp) {
         super(new GridBagLayout());
-        this.dataManager = dataManager;
+        this.planeDAO = planeDAO;
+        this.pilotDAO = pilotDAO;
         this.mainApp = mainApp;
         initComponents();
     }
@@ -73,13 +76,12 @@ public class AssignmentPanel extends JPanel {
     public void refreshData() {
         populatePlaneCombo();
         populatePilotCombo();
-        // updateCurrentAssignmentLabel(); // Called by populatePlaneCombo's listener
     }
 
     private void populatePlaneCombo() {
         PlaneWrapper selectedPlaneWrapper = (PlaneWrapper) assignPlaneCombo.getSelectedItem();
         assignPlaneCombo.removeAllItems();
-        List<Plane> planes = dataManager.getAllPlanes();
+        List<Plane> planes = planeDAO.getAllPlanes();
         PlaneWrapper toReselect = null;
         for (Plane plane : planes) {
             PlaneWrapper wrapper = new PlaneWrapper(plane);
@@ -101,7 +103,7 @@ public class AssignmentPanel extends JPanel {
     private void populatePilotCombo() {
          PilotWrapper selectedPilotWrapper = (PilotWrapper) assignPilotCombo.getSelectedItem();
          assignPilotCombo.removeAllItems();
-         List<Pilot> pilots = dataManager.getAllPilots();
+         List<Pilot> pilots = pilotDAO.getAllPilots();
          PilotWrapper toReselect = null;
 
          // Add a placeholder/instruction item
@@ -131,7 +133,9 @@ public class AssignmentPanel extends JPanel {
         }
 
         int planeId = selectedPlaneWrapper.getPlane().getId();
-        Optional<Pilot> assignedPilotOpt = dataManager.getAssignedPilotForPlane(planeId);
+        Optional<Plane> planeOpt = planeDAO.findPlaneById(planeId);
+        Optional<Pilot> assignedPilotOpt = planeOpt.flatMap(plane -> Optional.ofNullable(plane.getPilotId()))
+                                                   .flatMap(pilotDAO::findPilotById);
 
         if (assignedPilotOpt.isPresent()) {
             Pilot pilot = assignedPilotOpt.get();
@@ -161,13 +165,15 @@ public class AssignmentPanel extends JPanel {
         int planeId = selectedPlaneWrapper.getPlane().getId();
         int pilotId = selectedPilotWrapper.getPilot().getId();
 
-        Optional<Pilot> currentPilot = dataManager.getAssignedPilotForPlane(planeId);
-        if (currentPilot.isPresent() && currentPilot.get().getId() == pilotId) {
+        Optional<Plane> planeOpt = planeDAO.findPlaneById(planeId);
+        Optional<Pilot> currentPilotOpt = planeOpt.flatMap(plane -> Optional.ofNullable(plane.getPilotId()))
+                                                  .flatMap(pilotDAO::findPilotById);
+        if (currentPilotOpt.isPresent() && currentPilotOpt.get().getId() == pilotId) {
             JOptionPane.showMessageDialog(this, "This pilot is already assigned to this plane.", "Assignment Info", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        boolean success = dataManager.assignPilotToPlane(planeId, pilotId);
+        boolean success = planeDAO.assignPilotToPlane(planeId, pilotId);
 
         if (success) {
             mainApp.refreshAllPanels(); // Refresh all panels via main app
@@ -187,7 +193,7 @@ public class AssignmentPanel extends JPanel {
 
         int planeId = selectedPlaneWrapper.getPlane().getId();
 
-         if (dataManager.getAssignedPilotForPlane(planeId).isEmpty()) {
+         if (planeDAO.findPlaneById(planeId).isEmpty() || planeDAO.findPlaneById(planeId).get().getPilotId() == null) {
              JOptionPane.showMessageDialog(this, "No pilot is currently assigned to this plane.", "Unassign Info", JOptionPane.INFORMATION_MESSAGE);
              unassignButton.setEnabled(false);
              return;
@@ -198,7 +204,7 @@ public class AssignmentPanel extends JPanel {
                 "Confirm Unassignment", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 
         if (confirmation == JOptionPane.YES_OPTION) {
-            boolean success = dataManager.assignPilotToPlane(planeId, null);
+            boolean success = planeDAO.assignPilotToPlane(planeId, null);
             if (success) {
                 mainApp.refreshAllPanels(); // Refresh all panels via main app
                 JOptionPane.showMessageDialog(this, "Pilot unassigned successfully.", "Unassignment Success", JOptionPane.INFORMATION_MESSAGE);

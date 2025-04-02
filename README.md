@@ -10,6 +10,7 @@ A simple Java Swing desktop application to manage airplanes, pilots, passengers,
 *   **Assignments:** Assign pilots to planes and view current assignments.
 *   **Database Persistence:** All data is stored in a PostgreSQL database.
 *   **Basic GUI:** Uses Java Swing for the user interface with a tabbed layout.
+*   **DAO Pattern:** Data access logic is separated using the Data Access Object pattern.
 
 ## Technologies Used
 
@@ -83,7 +84,7 @@ A simple Java Swing desktop application to manage airplanes, pilots, passengers,
     Example (Command Line - adjust paths):
     ```bash
     # Compile (assuming src is in current dir)
-    javac -cp ".;path/to/postgresql-XX.X.X.jar" src/main/java/com/planeapp/util/*.java src/main/java/com/planeapp/model/*.java src/main/java/com/planeapp/data/*.java src/main/java/com/planeapp/gui/*.java
+    javac -cp ".;path/to/postgresql-XX.X.X.jar" src/main/java/com/planeapp/util/*.java src/main/java/com/planeapp/model/*.java src/main/java/com/planeapp/dao/*.java src/main/java/com/planeapp/gui/*.java
 
     # Run
     java -cp ".;path/to/postgresql-XX.X.X.jar" com.planeapp.gui.PlaneAppGUI
@@ -95,9 +96,10 @@ A simple Java Swing desktop application to manage airplanes, pilots, passengers,
 ## Project Structure
 
 *   `src/main/java/com/planeapp/`
-    *   `data/`: Contains `DataManager.java` for database interactions.
+    *   `dao/`: Contains DAO interfaces (`PlaneDAO`, `PilotDAO`, `PassengerDAO`) and their JDBC implementations (`JdbcPlaneDAO`, etc.).
     *   `gui/`: Contains the main `PlaneAppGUI.java` frame and separate panel classes (`PlanePanel.java`, `PilotPanel.java`, `AssignmentPanel.java`).
     *   `model/`: Contains the data model classes (`Plane.java`, `Pilot.java`, `Passenger.java`).
     *   `util/`: Contains utility classes like `DatabaseConnection.java`.
+*   `.gitignore`: Specifies intentionally untracked files.
 *   `README.md`: This file.
 *   `lib/` (Optional): A common place to store external JARs like the JDBC driver. 
