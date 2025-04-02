@@ -30,6 +30,8 @@ build/
 
 # IDE specific files
 .idea/
+*.idea/
+*.idea
 *.iml
 *.ipr
 *.iws
