@@ -110,25 +110,17 @@ A simple Java Swing desktop application to manage airplanes, pilots, passengers,
 
 ## Screenshots
 
-*(Optional: Add screenshots of your application here. Replace the placeholders below with links to your actual images.)*
-
 **Main Window (Planes Tab):**
 
-```
 ![Main Window - Planes](main.png)
-```
 
 **Pilots Tab:**
 
-```
 ![Pilots Tab](pilote.png)
-```
 
 **Assignment Tab:**
 
-```
 ![Assignment Tab](assigments.png)
-```
 
 ## Project Structure
 
