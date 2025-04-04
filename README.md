@@ -19,6 +19,7 @@ A simple Java Swing desktop application to manage airplanes, pilots, passengers,
 *   JDBC (for database connectivity)
 *   PostgreSQL (Database)
 *   Neon (Database Hosting Provider - based on connection string)
+*   FlatLaf (for modern Look and Feel)
 
 ## Setup
 
@@ -75,23 +76,59 @@ A simple Java Swing desktop application to manage airplanes, pilots, passengers,
     *   **If using an IDE (like VS Code/Cursor, IntelliJ, Eclipse):** Add the JAR as a referenced library or external JAR in your project's build path settings.
     *   **If using command line:** Include the JAR using the `-cp` or `-classpath` flag when compiling and running.
 
+### 4. FlatLaf Look and Feel Library (Optional, for Modern UI)
+
+*   This project uses the [FlatLaf](https://www.formdev.com/flatlaf/) library to provide a modern look and feel (specifically `FlatLightLaf`).
+*   If you want to use this theme, you need to download the FlatLaf JAR file.
+*   **Download:** You can usually find the latest JAR on the [FlatLaf GitHub Releases page](https://github.com/JFormDesigner/flatlaf/releases) or via Maven Central.
+*   **Add to Classpath:** Similar to the JDBC driver, add the downloaded `flatlaf-x.x.x.jar` file to your Java project's classpath.
+    *   **If using an IDE:** Add the JAR as a referenced library.
+    *   **If using command line:** Include the JAR in the `-cp` flag.
+        *Example (Compile): `javac -cp ".;path/to/postgresql.jar;path/to/flatlaf.jar" ...`*
+        *Example (Run): `java -cp ".;path/to/postgresql.jar;path/to/flatlaf.jar" com.planeapp.gui.PlaneAppGUI`*
+    *   If FlatLaf is not found in the classpath, the application will fall back to the system's default look and feel.
+
 ## Running the Application
 
-1.  Make sure you have completed the Database Setup and added the JDBC Driver.
+1.  Make sure you have completed the Database Setup and added the required JDBC Driver (and optionally the FlatLaf JAR).
 2.  Compile all `.java` files.
 3.  Run the main class: `com.planeapp.gui.PlaneAppGUI`.
 
     Example (Command Line - adjust paths):
     ```bash
     # Compile (assuming src is in current dir)
-    javac -cp ".;path/to/postgresql-XX.X.X.jar" src/main/java/com/planeapp/util/*.java src/main/java/com/planeapp/model/*.java src/main/java/com/planeapp/dao/*.java src/main/java/com/planeapp/gui/*.java
+    # Example includes FlatLaf JAR
+    javac -cp ".;path/to/postgresql-XX.X.X.jar;path/to/flatlaf-X.X.X.jar" src/main/java/com/planeapp/util/*.java src/main/java/com/planeapp/model/*.java src/main/java/com/planeapp/dao/*.java src/main/java/com/planeapp/gui/*.java
 
     # Run
-    java -cp ".;path/to/postgresql-XX.X.X.jar" com.planeapp.gui.PlaneAppGUI
+    # Example includes FlatLaf JAR
+    java -cp ".;path/to/postgresql-XX.X.X.jar;path/to/flatlaf-X.X.X.jar" com.planeapp.gui.PlaneAppGUI
     ```
 
-    *Replace `path/to/postgresql-XX.X.X.jar` with the actual path to the driver.*
+    *Replace `path/to/postgresql-XX.X.X.jar` and `path/to/flatlaf-X.X.X.jar` with the actual paths.*
     *If using an IDE, you can typically just right-click `PlaneAppGUI.java` and select "Run".*
+
+## Screenshots
+
+*(Optional: Add screenshots of your application here. Replace the placeholders below with links to your actual images.)*
+
+**Main Window (Planes Tab):**
+
+```
+![Main Window - Planes](main.png)
+```
+
+**Pilots Tab:**
+
+```
+![Pilots Tab](pilote.png)
+```
+
+**Assignment Tab:**
+
+```
+![Assignment Tab](assigments.png)
+```
 
 ## Project Structure
 
